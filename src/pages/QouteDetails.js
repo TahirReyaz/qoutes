@@ -1,27 +1,56 @@
-import { Fragment } from "react";
-import { Route, Routes, useParams } from "react-router-dom";
+import { Fragment, useEffect } from "react";
+import { useRouteMatch } from "react-router-dom";
+import { Link, Route, useParams } from "react-router-dom";
 import Comments from "../components/comments/Comments.js";
 import HighlightedQuote from "../components/quotes/HighlightedQuote";
-
-const DUMMY_QUOTES = [
-  { id: "q1", author: "Max", text: "Learning React is fun!" },
-  { id: "q2", author: "Maximilian", text: "Learning React is great!" },
-];
+import useHttp from "../hooks/use-http";
+import { getSingleQuote } from "../lib/api";
+import LoadingSpinner from "../components/UI/LoadingSpinner";
 
 const QouteDetails = () => {
+  const match = useRouteMatch();
   const { quoteId } = useParams();
-  const quote = DUMMY_QUOTES.find((quote) => quote.id === quoteId);
-  if (!quote) {
+
+  const {
+    sendRequest,
+    status,
+    data: loadedQuote,
+    error,
+  } = useHttp(getSingleQuote, true);
+
+  useEffect(() => {
+    sendRequest(quoteId);
+  }, [sendRequest, quoteId]);
+
+  if (status === "pending") {
+    return (
+      <div className="centered">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+  if (error) {
+    return <p className="centered focused">{error}</p>;
+  }
+
+  if (!loadedQuote.text) {
     return <p>No quote found</p>;
   }
 
   return (
     <Fragment>
-      <h1>All detials qoutes {quoteId}</h1>
-      <HighlightedQuote text={quote.text} author={quote.author} />
-      <Routes>
-        <Route path={`comments`} element={<Comments />} />
-      </Routes>
+      <h1>Quote Details</h1>
+      <HighlightedQuote text={loadedQuote.text} author={loadedQuote.author} />
+      <Route exact path={match.url}>
+        <div className="centered">
+          <Link className="btn--flat" to={`${match.url}/comments`}>
+            Load Comments
+          </Link>
+        </div>
+      </Route>
+      <Route path={`${match.url}/comments`}>
+        <Comments />
+      </Route>
     </Fragment>
   );
 };
