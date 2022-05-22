@@ -4,7 +4,7 @@ import classes from "./MainNavigation.module.css";
 const MainNavigation = () => {
   return (
     <header className={classes.header}>
-      <div className={classes.logo}>Mah quotes</div>
+      <div className={classes.logo}>My quotes</div>
       <nav className={classes.nav}>
         <ul>
           <li>
